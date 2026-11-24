@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#050b18">
+    <title>J.A.R.V.I.S.</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="app">
+        <header class="topbar">
+            <div class="logo">J.A.R.V.I.S.</div>
+            <div class="system-status">
+                <span class="status-dot"></span>
+                SYSTEM ONLINE
+            </div>
+        </header>
+
+        <main>
+            <section class="reactor-section">
+                <div class="greeting">GOOD DAY, SIR</div>
+
+                <div class="reactor" id="reactor">
+                    <div class="ring ring-one"></div>
+                    <div class="ring ring-two"></div>
+                    <div class="ring ring-three"></div>
+                    <div class="core">
+                        <div class="core-inner">J</div>
+                    </div>
+                </div>
+
+                <div class="assistant-status" id="assistantStatus">
+                    JARVIS IST BEREIT
+                </div>
+                <div class="clock" id="clock">00:00:00</div>
+            </section>
+
+            <section class="chat-section">
+                <div class="chat-header">
+                    <span>COMMUNICATION</span>
+                    <span class="online-label">● ONLINE</span>
+                </div>
+
+                <div class="messages" id="messages">
+                    <div class="message jarvis-message">
+                        <span class="sender">J.A.R.V.I.S.</span>
+                        Guten Tag. Mein System ist gestartet.
+                        Wie kann ich Ihnen helfen?
+                    </div>
+                </div>
+
+                <div class="input-area">
+                    <button id="micButton" class="mic-button">🎙</button>
+                    <input id="userInput"
+                        type="text"
+                        placeholder="Nachricht an JARVIS..."
+                        autocomplete="off">
+                    <button id="sendButton" class="send-button">
+                        SEND
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            PERSONAL AI SYSTEM
+            <span>VERSION 1.0</span>
+        </footer>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+</html>
+

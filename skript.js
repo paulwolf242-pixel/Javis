@@ -1,113 +1,164 @@
+// =====================================
+// J.A.R.V.I.S. – JavaScript
+// =====================================
+
 const userInput = document.getElementById("userInput");
 const sendButton = document.getElementById("sendButton");
 const micButton = document.getElementById("micButton");
 const messages = document.getElementById("messages");
+const clock = document.getElementById("clock");
 const assistantStatus = document.getElementById("assistantStatus");
 
+// =====================================
+// UHR UND DATUM
+// =====================================
+
 function updateClock() {
-    document.getElementById("clock").textContent =
-        new Date().toLocaleTimeString("de-DE");
+    if (!clock) return;
+
+    const now = new Date();
+
+    clock.textContent = now.toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    });
 }
 
 updateClock();
 setInterval(updateClock, 1000);
 
+// =====================================
+// NACHRICHTEN ANZEIGEN
+// =====================================
+
 function addMessage(text, sender) {
     const message = document.createElement("div");
-    message.classList.add("message",
-        sender === "user" ? "user-message" : "jarvis-message");
 
-    const label = document.createElement("span");
-    label.className = "sender";
-    label.textContent = sender === "user" ? "DU" : "J.A.R.V.I.S.";
+    message.className = sender === "user"
+        ? "user-message"
+        : "assistant-message";
 
-    const content = document.createElement("div");
-    content.textContent = text;
+    message.textContent = text;
 
-    message.append(label, content);
     messages.appendChild(message);
     messages.scrollTop = messages.scrollHeight;
 }
 
+// =====================================
+// SPRACHAUSGABE
+// =====================================
+
 function speak(text) {
-    if (!("speechSynthesis" in window)) return;
+    if (!("speechSynthesis" in window)) {
+        return;
+    }
 
     window.speechSynthesis.cancel();
 
-    const speech = new SpeechSynthesisUtterance(text);
-    speech.lang = "de-DE";
-    speech.rate = 0.95;
-    speech.pitch = 0.85;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "de-DE";
+    utterance.rate = 1;
+    utterance.pitch = 1;
 
-    speech.onstart = () => {
-        assistantStatus.textContent = "JARVIS SPRICHT";
-    };
-
-    speech.onend = () => {
-        assistantStatus.textContent = "JARVIS IST BEREIT";
-    };
-
-    window.speechSynthesis.speak(speech);
+    window.speechSynthesis.speak(utterance);
 }
 
-function getResponse(question) {
-    const text = question.toLowerCase();
+// =====================================
+// JARVIS ANTWORTEN
+// =====================================
 
-    if (text.includes("hallo") || text.includes("hi jarvis")) {
-        return "Guten Tag. Mein System ist bereit.";
+function getResponse(input) {
+    const command = input.toLowerCase().trim();
+
+    if (
+        command.includes("hallo") ||
+        command.includes("hey jarvis")
+    ) {
+        return "Guten Tag. J.A.R.V.I.S. ist einsatzbereit.";
     }
 
-    if (text.includes("wie spät") || text.includes("uhrzeit")) {
+    if (
+        command.includes("uhrzeit") ||
+        command.includes("wie spät")
+    ) {
         return "Es ist " + new Date().toLocaleTimeString("de-DE") + " Uhr.";
     }
 
-    if (text.includes("datum")) {
-        return "Heute ist der " + new Date().toLocaleDateString("de-DE") + ".";
+    if (command.includes("datum") || command.includes("welcher tag")) {
+        return "Heute ist " + new Date().toLocaleDateString("de-DE", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        });
     }
 
-    if (text.includes("wer bist du") || text.includes("dein name")) {
-        return "Mein Name ist JARVIS. Ich bin Ihr persönlicher digitaler Assistent.";
+    if (command.includes("hilfe")) {
+        return "Du kannst mich nach der Uhrzeit und dem Datum fragen oder Hallo sagen. Weitere Funktionen können wir später hinzufügen.";
     }
 
-    if (text.includes("wie geht es dir") || text.includes("alles klar")) {
-        return "Alle lokalen Systeme funktionieren.";
+    if (command.includes("wer bist du")) {
+        return "Ich bin J.A.R.V.I.S., dein persönlicher digitaler Assistent.";
     }
 
-    if (text.includes("hilfe") || text.includes("was kannst du")) {
-        return "Ich kann einfache Nachrichten beantworten, die Uhrzeit anzeigen und mit Ihnen sprechen. Meine KI-Funktionen werden später erweitert.";
+    if (command.includes("stopp") || command.includes("stop")) {
+        window.speechSynthesis.cancel();
+        return "Sprachausgabe gestoppt.";
     }
 
-    if (text.includes("danke")) {
-        return "Sehr gerne. Ich stehe Ihnen zur Verfügung.";
-    }
-
-    return "Ich habe Ihre Nachricht erhalten. Meine Verbindung zur Claude-KI ist noch nicht eingerichtet.";
+    return "Ich habe deinen Befehl erhalten: " + input +
+        ". Für eine intelligente Antwort muss ich noch mit einer KI verbunden werden.";
 }
+
+// =====================================
+// NACHRICHT SENDEN
+// =====================================
 
 function sendMessage() {
-    const question = userInput.value.trim();
-    if (!question) return;
+    if (!userInput || !messages) return;
 
-    addMessage(question, "user");
+    const text = userInput.value.trim();
+
+    if (text === "") return;
+
+    addMessage(text, "user");
+
     userInput.value = "";
 
-    assistantStatus.textContent = "JARVIS DENKT";
+    const answer = getResponse(text);
 
     setTimeout(() => {
-        const answer = getResponse(question);
-        addMessage(answer, "jarvis");
-        assistantStatus.textContent = "JARVIS IST BEREIT";
+        addMessage(answer, "assistant");
         speak(answer);
-    }, 600);
+    }, 400);
 }
 
-sendButton.addEventListener("click", sendMessage);
+// =====================================
+// ABSENDEN-BUTTON
+// =====================================
 
-userInput.addEventListener("keydown", event => {
-    if (event.key === "Enter") sendMessage();
-});
+if (sendButton) {
+    sendButton.addEventListener("click", sendMessage);
+}
 
-// Sprachsteuerung
+// =====================================
+// ENTER-TASTE
+// =====================================
+
+if (userInput) {
+    userInput.addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+}
+
+// =====================================
+// SPRACHEINGABE
+// =====================================
+
 const SpeechRecognition =
     window.SpeechRecognition ||
     window.webkitSpeechRecognition;
@@ -117,53 +168,80 @@ let isListening = false;
 
 if (SpeechRecognition) {
     recognition = new SpeechRecognition();
+
     recognition.lang = "de-DE";
     recognition.continuous = false;
     recognition.interimResults = false;
 
-    recognition.onstart = () => {
+    recognition.onstart = function() {
         isListening = true;
-        micButton.classList.add("listening");
-        assistantStatus.textContent = "ICH HÖRE ZU";
+
+        if (assistantStatus) {
+            assistantStatus.textContent = "ICH HÖRE ZU ...";
+        }
     };
 
-    recognition.onresult = event => {
-        userInput.value = event.results[0][0].transcript;
+    recognition.onresult = function(event) {
+        const spokenText = event.results[0][0].transcript;
+
+        userInput.value = spokenText;
+
         sendMessage();
     };
 
-    recognition.onend = () => {
-        isListening = false;
-        micButton.classList.remove("listening");
-        assistantStatus.textContent = "JARVIS IST BEREIT";
+    recognition.onerror = function() {
+        if (assistantStatus) {
+            assistantStatus.textContent = "SPRACHEINGABE FEHLGESCHLAGEN";
+        }
     };
 
-    recognition.onerror = event => {
+    recognition.onend = function() {
         isListening = false;
-        micButton.classList.remove("listening");
-        assistantStatus.textContent = "MIKROFON: " + event.error;
+
+        if (assistantStatus) {
+            assistantStatus.textContent = "J.A.R.V.I.S. BEREIT";
+        }
     };
-} else {
-    micButton.title = "Spracherkennung nicht unterstützt";
 }
 
-micButton.addEventListener("click", () => {
-    if (!recognition) {
-        addMessage("Die Spracherkennung wird in diesem Browser nicht unterstützt.", "jarvis");
-        return;
-    }
+// =====================================
+// MIKROFON-BUTTON
+// =====================================
 
-    if (isListening) {
-        recognition.stop();
-    } else {
-        window.speechSynthesis.cancel();
+if (micButton) {
+    micButton.addEventListener("click", function() {
+        if (!recognition) {
+            if (assistantStatus) {
+                assistantStatus.textContent =
+                    "SPRACHEINGABE WIRD NICHT UNTERSTÜTZT";
+            }
 
-        try {
-            recognition.start();
-        } catch (error) {
-            assistantStatus.textContent = "MIKROFON IST BESCHÄFTIGT";
+            return;
         }
-    }
-});
 
-console.log("J.A.R.V.I.S. Version 1.0 gestartet.");
+        if (isListening) {
+            recognition.stop();
+        } else {
+            window.speechSynthesis.cancel();
+
+            try {
+                recognition.start();
+            } catch (error) {
+                if (assistantStatus) {
+                    assistantStatus.textContent =
+                        "MIKROFON IST BESCHÄFTIGT";
+                }
+            }
+        }
+    });
+}
+
+// =====================================
+// STARTMELDUNG
+// =====================================
+
+if (assistantStatus) {
+    assistantStatus.textContent = "J.A.R.V.I.S. BEREIT";
+}
+
+console.log("J.A.R.V.I.S. Version 2.0 gestartet.");
